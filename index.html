@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SBOM Generator & Analyzer - GitHub Repository Scanner</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🛡️ SBOM Generator & Analyzer</h1>
+        <p>Scan GitHub repositories and generate comprehensive SBOMs</p>
+      </div>
+
+      <div class="main-card">
+        <!-- API Key Section -->
+        <!-- <div class="api-key-section">
+          <h2 class="section-title"><i>🔑</i> GitHub API Configuration</h2>
+          <p>For enhanced rate limits and private repository access:</p>
+          <input
+            type="password"
+            class="api-key-input"
+            id="githubToken"
+            placeholder="Enter GitHub Personal Access Token (Optional)"
+          />
+          <div class="api-info">
+            Optional: Without token, rate limit is 60 requests/hour.
+            <a href="https://github.com/settings/tokens" target="_blank"
+              >Get token</a
+            >
+            |
+            <button
+              onclick="document.getElementById('githubToken').type='text'"
+            >
+              Show
+            </button>
+            <button
+              onclick="document.getElementById('githubToken').type='password'"
+            >
+              Hide
+            </button>
+          </div>
+        </div> -->
+
+        <!-- GitHub Repository Input -->
+        <div class="project-selection">
+          <h2 class="section-title">
+            <i>🔗</i> Add GitHub Repositories for Analysis
+          </h2>
+          <div class="repo-input-section">
+            <div class="input-group">
+              <input
+                type="text"
+                class="url-input"
+                id="repoUrlInput"
+                placeholder="https://github.com/username/repository or username/repository"
+              />
+              <button class="btn btn-primary" id="addRepoBtn">
+                <i>➕</i> Add Repository
+              </button>
+              <button class="btn btn-outline" id="clearReposBtn">
+                <i>🗑️</i> Clear All
+              </button>
+            </div>
+            <div class="input-hint">
+              Enter a GitHub repository URL or "owner/repo" format
+            </div>
+
+            <div class="examples">
+              <h4>Try these popular repositories:</h4>
+              <div class="example-repos">
+                <div class="example-repo" data-url="expressjs/express">
+                  expressjs/express
+                </div>
+                <div class="example-repo" data-url="pallets/flask">
+                  pallets/flask
+                </div>
+                <div
+                  class="example-repo"
+                  data-url="spring-projects/spring-boot"
+                >
+                  spring-projects/spring-boot
+                </div>
+                <div class="example-repo" data-url="rails/rails">
+                  rails/rails
+                </div>
+                <div class="example-repo" data-url="vuejs/vue">vuejs/vue</div>
+              </div>
+            </div>
+
+            <div class="repos-list" id="reposList">
+              <!-- Repository items will be added here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SBOM Generation Tools -->
+        <div class="sbom-tools">
+          <h2 class="section-title"><i>⚙️</i> SBOM Generation Tools</h2>
+          <div class="tools-grid">
+            <!-- Syft Tool -->
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">Syft</div>
+                <div class="tool-status status-pending" id="syftStatus">
+                  Pending
+                </div>
+              </div>
+              <p>Generate SBOMs in both CycloneDX and SPDX formats</p>
+              <div class="tool-actions">
+                <button class="btn btn-primary" id="runSyftBtn">
+                  <i>▶️</i> Run Syft Scan
+                </button>
+                <button
+                  class="btn btn-outline"
+                  id="downloadCycloneDxSyftBtn"
+                  disabled
+                >
+                  <i>⬇️</i> CycloneDX
+                </button>
+                <button
+                  class="btn btn-outline"
+                  id="downloadSpdxSyftBtn"
+                  disabled
+                >
+                  <i>⬇️</i> SPDX
+                </button>
+              </div>
+              <div
+                class="progress-container"
+                id="syftProgress"
+                style="display: none"
+              >
+                <div class="progress-bar">
+                  <div class="progress-fill" id="syftProgressBar"></div>
+                </div>
+                <div class="progress-logs" id="syftLogs"></div>
+              </div>
+            </div>
+
+            <!-- OWASP DC Tool -->
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">OWASP Dependency-Check</div>
+                <div class="tool-status status-pending" id="owaspStatus">
+                  Pending
+                </div>
+              </div>
+              <p>Generate SBOMs with vulnerability analysis</p>
+              <div class="tool-actions">
+                <button class="btn btn-primary" id="runOwaspBtn">
+                  <i>▶️</i> Run OWASP DC Scan
+                </button>
+                <button
+                  class="btn btn-outline"
+                  id="downloadCycloneDxOwaspBtn"
+                  disabled
+                >
+                  <i>⬇️</i> CycloneDX
+                </button>
+                <button
+                  class="btn btn-outline"
+                  id="downloadSpdxOwaspBtn"
+                  disabled
+                >
+                  <i>⬇️</i> SPDX
+                </button>
+              </div>
+              <div
+                class="progress-container"
+                id="owaspProgress"
+                style="display: none"
+              >
+                <div class="progress-bar">
+                  <div class="progress-fill owasp" id="owaspProgressBar"></div>
+                </div>
+                <div class="progress-logs" id="owaspLogs"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison Results -->
+        <div class="comparison-section">
+          <h2 class="section-title"><i>📊</i> Tool Comparison Results</h2>
+          <div class="comparison-grid">
+            <div class="metric-card">
+              <div class="metric-label">Total Dependencies (Syft)</div>
+              <div class="metric-value comparison-neutral" id="syftTotalDeps">
+                0
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Total Dependencies (OWASP)</div>
+              <div class="metric-value comparison-neutral" id="owaspTotalDeps">
+                0
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Common Dependencies</div>
+              <div class="metric-value comparison-positive" id="commonDeps">
+                0
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Missing Dependencies</div>
+              <div class="metric-value comparison-negative" id="missingDeps">
+                0
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dependencies Analysis -->
+        <div class="dependencies-section">
+          <h2 class="section-title">
+            <i>🔍</i> Dependency Analysis (Direct + Transitive)
+          </h2>
+          <div class="deps-container">
+            <div class="deps-list">
+              <h4>Dependencies Found by Both Tools</h4>
+              <div id="commonDepsList">
+                Add repositories and run scans to see dependencies
+              </div>
+            </div>
+            <div class="deps-list">
+              <h4>Missing Dependencies (Tool Differences)</h4>
+              <div id="missingDepsList">
+                Comparison will show here after running both tools
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Challenges Documentation -->
+        <div class="challenges-section">
+          <h2 class="section-title">
+            <i>⚠️</i> Challenges & Issues Documentation
+          </h2>
+          <div class="challenges-list" id="challengesList">
+            <div class="challenge-item solved">
+              <div class="challenge-title">🔄 Ready to Start</div>
+              <div class="challenge-desc">
+                Add GitHub repositories and run SBOM tools to begin analysis
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Generation -->
+        <div class="report-section">
+          <button class="btn btn-secondary btn-large" id="generateReportBtn">
+            <i>📄</i> Generate Complete Analysis Report
+          </button>
+          <p style="margin-top: 15px; color: #666; font-size: 0.9rem">
+            Report includes: Tool comparison, vulnerabilities, challenges, and
+            SBOM files
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
